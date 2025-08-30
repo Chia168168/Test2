@@ -166,8 +166,8 @@ const thumbList = [];
     updateThumbs();
   });
 });
-
-// 縮放比例顯示
+document.getElementById('longSideCustom').addEventListener('input', updateThumbs);
+document.getElementById('shortSideCustom').addEventListener('input', updateThumbs);
 document.getElementById('scale').addEventListener('input', e=>{
   document.getElementById('scaleLabel').textContent = e.target.value + '%';
   updateThumbs();
@@ -187,16 +187,25 @@ async function handleFiles(list){
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = ()=>{
-      const thumb = {file, url, origW: img.naturalWidth, origH: img.naturalHeight, w: img.naturalWidth, h: img.naturalHeight};
+      const thumb = {
+        file, url, 
+        origW: img.naturalWidth, origH: img.naturalHeight,
+        w: img.naturalWidth, h: img.naturalHeight
+      };
       queue.push(thumb);
       addThumb(thumb);
+
+      // **自動套用當前尺寸設定**
+      const {w,h} = calcTargetSize(thumb.origW, thumb.origH);
+      thumb.w = w;
+      thumb.h = h;
+      thumb.meta.textContent = `${thumb.origW}×${thumb.origH} → ${thumb.w}×${thumb.h}`;
     };
     img.src = url;
   }
   log(`加入 ${list.length} 個檔案`);
 }
 
-// 新增縮圖
 function addThumb(thumb){
   const div = document.createElement('div'); div.className='thumb';
   const imgEl = new Image(); imgEl.src = thumb.url; div.appendChild(imgEl);
@@ -218,14 +227,11 @@ function calcTargetSize(origW,origH){
   const scale=Number(document.getElementById('scale').value)/100;
   const lock=document.getElementById('lock').checked;
 
-  let useResize=false;
   if(longSel>0 || longSel==-1 || shortSel>0 || shortSel==-1){
-    useResize=true;
     let targetLong = longSel>0 ? longSel : (longSel==-1 && longCustom>0 ? longCustom: origW);
     let targetShort = shortSel>0 ? shortSel : (shortSel==-1 && shortCustom>0 ? shortCustom: origH);
-
-    if(origW>=origH){ w=targetLong; h=targetShort; if(lock) h=Math.round(origH*(w/origW)); }
-    else{ h=targetLong; w=targetShort; if(lock) w=Math.round(origW*(h/origH)); }
+    if(origW>=origH){ w=targetLong; h=lock? Math.round(origH*(w/origW)) : targetShort; }
+    else{ h=targetLong; w=lock? Math.round(origW*(h/origH)) : targetShort; }
   } else{
     w = Math.round(origW*scale); h=Math.round(origH*scale);
   }
