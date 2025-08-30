@@ -67,15 +67,6 @@ label{display:block;margin-top:10px;font-size:14px;color:#9aa4b2}
     <button id="clear">清空</button>
 
     <h3>輸出選項</h3>
-    <label>輸出格式
-      <select id="format">
-        <option value="keep">維持原格式</option>
-        <option value="image/jpeg" selected>JPEG</option>
-        <option value="image/png">PNG</option>
-        <option value="image/webp">WebP</option>
-      </select>
-    </label>
-
     <label>長邊
       <select id="longSide">
         <option value="0" selected>原尺寸</option>
@@ -158,21 +149,14 @@ const thumbs = document.getElementById("thumbs");
 const queue = [];
 const thumbList = [];
 
-// 顯示/隱藏自訂欄
-['longSide','shortSide'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', e=>{
-    const custom = document.getElementById(id+'Custom');
-    custom.style.display = e.target.value==-1 ? 'block':'none';
-    updateThumbs();
-  });
+// 顯示/隱藏自訂欄與更新縮圖
+['longSide','shortSide','longSideCustom','shortSideCustom','scale','lock'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){
+    el.addEventListener('input',updateThumbs);
+    el.addEventListener('change',updateThumbs);
+  }
 });
-document.getElementById('longSideCustom').addEventListener('input', updateThumbs);
-document.getElementById('shortSideCustom').addEventListener('input', updateThumbs);
-document.getElementById('scale').addEventListener('input', e=>{
-  document.getElementById('scaleLabel').textContent = e.target.value + '%';
-  updateThumbs();
-});
-document.getElementById('lock').addEventListener('change', updateThumbs);
 
 // 拖放/選檔
 const drop=document.getElementById('drop');
@@ -187,25 +171,17 @@ async function handleFiles(list){
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = ()=>{
-      const thumb = {
-        file, url, 
-        origW: img.naturalWidth, origH: img.naturalHeight,
-        w: img.naturalWidth, h: img.naturalHeight
-      };
+      const thumb = {file, url, origW: img.naturalWidth, origH: img.naturalHeight, w: img.naturalWidth, h: img.naturalHeight};
       queue.push(thumb);
       addThumb(thumb);
-
-      // **自動套用當前尺寸設定**
-      const {w,h} = calcTargetSize(thumb.origW, thumb.origH);
-      thumb.w = w;
-      thumb.h = h;
-      thumb.meta.textContent = `${thumb.origW}×${thumb.origH} → ${thumb.w}×${thumb.h}`;
+      updateThumbs();
     };
     img.src = url;
   }
   log(`加入 ${list.length} 個檔案`);
 }
 
+// 新增縮圖
 function addThumb(thumb){
   const div = document.createElement('div'); div.className='thumb';
   const imgEl = new Image(); imgEl.src = thumb.url; div.appendChild(imgEl);
@@ -227,11 +203,14 @@ function calcTargetSize(origW,origH){
   const scale=Number(document.getElementById('scale').value)/100;
   const lock=document.getElementById('lock').checked;
 
+  let useResize=false;
   if(longSel>0 || longSel==-1 || shortSel>0 || shortSel==-1){
+    useResize=true;
     let targetLong = longSel>0 ? longSel : (longSel==-1 && longCustom>0 ? longCustom: origW);
     let targetShort = shortSel>0 ? shortSel : (shortSel==-1 && shortCustom>0 ? shortCustom: origH);
-    if(origW>=origH){ w=targetLong; h=lock? Math.round(origH*(w/origW)) : targetShort; }
-    else{ h=targetLong; w=lock? Math.round(origW*(h/origH)) : targetShort; }
+
+    if(origW>=origH){ w=targetLong; h=targetShort; if(lock) h=Math.round(origH*(w/origW)); }
+    else{ h=targetLong; w=targetShort; if(lock) w=Math.round(origW*(h/origH)); }
   } else{
     w = Math.round(origW*scale); h=Math.round(origH*scale);
   }
@@ -261,7 +240,7 @@ async function processFile(t){
     const {w,h} = calcTargetSize(img.naturalWidth,img.naturalHeight);
     const canvas = document.createElement('canvas'); canvas.width=w; canvas.height=h;
     await picaInstance.resize(img,canvas,{quality:3,alpha:true});
-    const fmt=document.getElementById('format').value;
+    const fmt=document.getElementById('format')?.value || 'image/jpeg';
     const mime= fmt!='keep'?fmt: f.type||'image/jpeg';
     const quality= (mime.includes('jpeg')||mime.includes('webp'))? Number(document.getElementById('scale').value)/100:undefined;
     const outBlob=await picaInstance.toBlob(canvas,mime,quality);
