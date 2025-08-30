@@ -158,13 +158,20 @@ const thumbs = document.getElementById("thumbs");
 const queue = [];
 const thumbList = [];
 
-// 顯示/隱藏自訂欄 & 即時更新
-['longSide','longSideCustom','shortSide','shortSideCustom'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', updateThumbs);
-  document.getElementById(id).addEventListener('change', updateThumbs);
+// 顯示/隱藏自訂欄
+['longSide','shortSide'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    document.getElementById(id+'Custom').style.display = e.target.value==-1 ? 'block':'none';
+    updateThumbs();
+  });
 });
-document.getElementById('scale').addEventListener('input', ()=>{
-  document.getElementById('scaleLabel').textContent = document.getElementById('scale').value+'%';
+['longSideCustom','shortSideCustom'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateThumbs);
+});
+
+// 縮放比例顯示
+document.getElementById('scale').addEventListener('input', e=>{
+  document.getElementById('scaleLabel').textContent = e.target.value + '%';
   updateThumbs();
 });
 document.getElementById('lock').addEventListener('change', updateThumbs);
@@ -182,13 +189,9 @@ async function handleFiles(list){
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = ()=>{
-      const thumb = {
-        file, url, origW: img.naturalWidth, origH: img.naturalHeight,
-        w: img.naturalWidth, h: img.naturalHeight
-      };
+      const thumb = {file, url, origW: img.naturalWidth, origH: img.naturalHeight, w: img.naturalWidth, h: img.naturalHeight};
       queue.push(thumb);
       addThumb(thumb);
-      updateThumbs(); // 新增時即時更新尺寸
     };
     img.src = url;
   }
@@ -207,9 +210,9 @@ function addThumb(thumb){
   thumbList.push(thumb);
 }
 
-// 計算目標尺寸
-function calcTargetSize(origW,origH){
-  let w=origW,h=origH;
+// 計算目標尺寸 (修正長/短邊)
+function calcTargetSize(origW, origH){
+  let w=origW, h=origH;
   const longSel=Number(document.getElementById('longSide').value);
   const shortSel=Number(document.getElementById('shortSide').value);
   const longCustom=Number(document.getElementById('longSideCustom').value);
@@ -217,35 +220,28 @@ function calcTargetSize(origW,origH){
   const scale=Number(document.getElementById('scale').value)/100;
   const lock=document.getElementById('lock').checked;
 
-  if(longSel>0 || longSel==-1 || shortSel>0 || shortSel==-1){
-    // 已設定長短邊時忽略縮放比例
-    let targetLong = longSel>0 ? longSel : (longSel==-1 && longCustom>0 ? longCustom: origW);
-    let targetShort = shortSel>0 ? shortSel : (shortSel==-1 && shortCustom>0 ? shortCustom: origH);
+  let targetLong = (longSel>0) ? longSel : (longSel==-1 && longCustom>0 ? longCustom : 0);
+  let targetShort = (shortSel>0) ? shortSel : (shortSel==-1 && shortCustom>0 ? shortCustom : 0);
 
-    if(origW>=origH){
-      w = targetLong;
-      h = targetShort;
-      if(lock) h = Math.round(origH*(w/origW));
-    } else {
-      h = targetLong;
-      w = targetShort;
-      if(lock) w = Math.round(origW*(h/origH));
+  if(targetLong || targetShort){
+    if(origW>=origH){ // 寬圖
+      if(targetLong) w = targetLong;
+      if(targetShort) h = targetShort;
+      if(lock && targetLong) h = Math.round(origH*(w/origW));
+      if(lock && targetShort) w = Math.round(origW*(h/origH));
+    } else { // 高圖
+      if(targetLong) h = targetLong;
+      if(targetShort) w = targetShort;
+      if(lock && targetLong) w = Math.round(origW*(h/origH));
+      if(lock && targetShort) h = Math.round(origH*(w/origW));
     }
-  } else {
-    w = Math.round(origW*scale);
-    h = Math.round(origH*scale);
-  }
+  } else { w=Math.round(origW*scale); h=Math.round(origH*scale); }
+
   return {w,h};
 }
 
 // 更新所有縮圖尺寸顯示
 function updateThumbs(){
-  // 顯示/隱藏自訂欄
-  ['longSide','shortSide'].forEach(id=>{
-    const sel = document.getElementById(id).value;
-    document.getElementById(id+'Custom').style.display = (sel==-1)?'block':'none';
-  });
-
   thumbList.forEach(t=>{
     const {w,h}=calcTargetSize(t.origW,t.origH);
     t.w=w; t.h=h;
