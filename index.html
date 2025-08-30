@@ -5,34 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teng Image Tools</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; background:#0b1020; color:#e7ecf3; }
-  h1,h2{text-align:center;}
-  /* 分頁按鈕 */
-  .tabs { display:flex; justify-content:center; margin-bottom:20px; gap:10px; flex-wrap:wrap; }
-  .tab { padding:10px 20px; cursor:pointer; border-radius:6px; background:#002366; color:#fff; font-weight:bold; }
-  .tab.active { background:#0044aa; }
-  .tab-content { display:none; }
-  .tab-content.active { display:block; }
-  textarea { width:100%; height:150px; }
-  img.preview { max-width:100%; max-height:200px; display:block; margin:10px auto; }
-  button { margin:10px 0; padding:10px; font-size:16px; cursor:pointer; }
-  select,input[type="number"],input[type="text"],input[type="range"] {
-    padding:10px; border-radius:6px; border:1px solid #27314a; background:#141a2e; color:#e7ecf3; font-size:16px; width:100%; box-sizing:border-box;
-  }
-  .card{background:#141a2e;border:1px solid #27314a;border-radius:12px;padding:16px;margin:12px auto;max-width:100%}
-  .log{font-family:monospace;background:#0a0f22;border:1px solid #27314a;border-radius:8px;padding:10px;height:160px;overflow:auto}
-  .thumbs{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
-  .thumb{background:#0c1226;border:1px solid #27314a;border-radius:12px;overflow:hidden; text-align:center; padding:5px;}
-  .thumb img{width:100%; display:block; transition: width 0.3s, height 0.3s;}
-  .thumb .meta{font-size:12px;color:#9aa4b2; margin-top:4px;}
-  .drop{border:2px dashed #2b3b66;border-radius:10px;padding:18px;text-align:center;color:#c7d2fe;background:#0d1330;margin-bottom:10px}
-  .drop.dragover{outline:2px solid #5eead4}
-  label{display:block;margin-top:10px;font-size:14px;color:#9aa4b2}
-  /* 深藍按鈕檔案選擇 */
-  .file-btn { display:inline-block; padding:10px 20px; background:#002366; color:#fff; border-radius:6px; cursor:pointer; margin:5px 0; text-align:center; }
-  .file-btn input[type=file]{ display:none; }
+body { font-family: Arial, sans-serif; margin: 20px; background:#0b1020; color:#e7ecf3; }
+h1, h2 { text-align: center; }
+.tabs { display: flex; justify-content: center; margin-bottom: 20px; gap:10px; flex-wrap:wrap; }
+.tab { padding: 10px 20px; cursor: pointer; border-radius:6px; background:#002366; color:#fff; font-weight:bold; }
+.tab.active { background:#0044aa; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+textarea { width: 100%; height: 150px; }
+img.preview { max-width: 100%; max-height: 200px; display: block; margin: 10px auto; }
+button { margin: 10px 0; padding:10px; font-size:16px; cursor:pointer; }
+select, input[type="number"], input[type="text"], input[type="range"] {
+  padding:10px; border-radius:6px; border:1px solid #27314a; background:#141a2e; color:#e7ecf3; font-size:16px; width:100%;
+  box-sizing:border-box;
+}
+.card{background:#141a2e;border:1px solid #27314a;border-radius:12px;padding:16px;margin:12px auto;max-width:100%}
+.log{font-family:monospace;background:#0a0f22;border:1px solid #27314a;border-radius:8px;padding:10px;height:160px;overflow:auto}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr); gap:12px;}
+.thumb{background:#0c1226;border:1px solid #27314a;border-radius:12px;overflow:hidden}
+.thumb img{width:100%;display:block}
+.thumb .meta{padding:8px;font-size:12px;color:#9aa4b2;text-align:center}
+.drop{border:2px dashed #2b3b66;border-radius:10px;padding:18px;text-align:center;color:#c7d2fe;background:#0d1330;margin-bottom:10px}
+.drop.dragover{outline:2px solid #5eead4}
+label{display:block;margin-top:10px;font-size:14px;color:#9aa4b2}
+.file-btn { display:inline-block; padding:10px 20px; background:#002366; color:#fff; border-radius:6px; cursor:pointer; margin:5px 0; text-align:center; }
+.file-btn input[type=file]{ display:none; }
 
-  @media(max-width:900px){ .thumbs{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:600px){
+  .thumbs{grid-template-columns:repeat(2,1fr);}
+  body { margin:5px; }
+  .card { margin:5px; padding:12px; }
+  button, select, input, textarea { width:100% !important; box-sizing:border-box; font-size:16px; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/pica@8.0.0/dist/pica.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
@@ -42,13 +46,11 @@
 <body>
 <h1>Teng Image Tools</h1>
 
-<!-- 分頁切換 -->
 <div class="tabs">
   <div class="tab active" data-tab="resizer">尺寸格式調整</div>
   <div class="tab" data-tab="base64">Base64轉換</div>
 </div>
 
-<!-- 圖片尺寸調整 -->
 <div id="resizer" class="tab-content active">
   <section class="card">
     <h2>圖片尺寸/格式調整器</h2>
@@ -95,17 +97,9 @@
       <input type="number" id="shortSideCustom" placeholder="自訂短邊" style="display:none; margin-top:5px;">
     </label>
 
-    <label>縮放比例 (%) 
-      <input id="scale" type="range" min="10" max="200" value="100">
-      <span id="scaleLabel">100%</span>
-    </label>
-
-    <label>品質 (JPEG/WebP) 
-      <input id="quality" type="range" min="50" max="100" value="90">
-      <span id="qualityLabel">90%</span>
-    </label>
-
-    <h3>注意：已設定長/短邊，縮放比例將忽略</h3>
+    <label><input id="lock" type="checkbox" checked> 維持長寬比</label>
+    <label>縮放比例 (%) <input id="scale" type="range" min="10" max="200" value="100"><span id="scaleLabel">100%</span></label>
+    <div id="note" style="color:#ff7777; margin-top:5px;">注意：已設定長/短邊，縮放比例將忽略</div>
 
     <h3>預覽</h3>
     <div id="thumbs" class="thumbs"></div>
@@ -114,7 +108,6 @@
   </section>
 </div>
 
-<!-- Base64 轉換 -->
 <div id="base64" class="tab-content">
   <section class="card">
     <h2>圖片 → Base64</h2>
@@ -141,6 +134,7 @@
 
 <script>
 const picaInstance = window.pica({features:['js','wasm','cib']});
+
 // 分頁切換
 document.querySelectorAll(".tab").forEach(tab=>{
   tab.addEventListener("click",()=>{
@@ -151,26 +145,38 @@ document.querySelectorAll(".tab").forEach(tab=>{
   });
 });
 
-// 縮放/品質顯示
-document.getElementById("scale").addEventListener("input", e=>{ document.getElementById("scaleLabel").textContent=e.target.value+"%"; updateThumbs(); });
-document.getElementById("quality").addEventListener("input", e=>{ document.getElementById("qualityLabel").textContent=e.target.value+"%"; });
+// 日誌
+const logEl = document.getElementById("log");
+function log(msg){ 
+  const time=new Date().toLocaleTimeString(); 
+  logEl.innerHTML+=`[${time}] ${msg}<br>`; 
+  logEl.scrollTop=logEl.scrollHeight;
+}
 
-// 長/短邊自訂顯示
-document.getElementById("longSide").addEventListener("change",e=>{ document.getElementById("longSideCustom").style.display = e.target.value=="-1"?"block":"none"; updateThumbs(); });
-document.getElementById("shortSide").addEventListener("change",e=>{ document.getElementById("shortSideCustom").style.display = e.target.value=="-1"?"block":"none"; updateThumbs(); });
-document.getElementById("longSideCustom").addEventListener("input",updateThumbs);
-document.getElementById("shortSideCustom").addEventListener("input",updateThumbs);
+// 縮圖資料
+const thumbs = document.getElementById("thumbs");
+const queue = [];
+const thumbList = [];
 
-const logEl=document.getElementById("log");
-function log(msg){ const time=new Date().toLocaleTimeString(); logEl.innerHTML+=`[${time}] ${msg}<br>`; logEl.scrollTop=logEl.scrollHeight; }
+// 顯示/隱藏自訂欄
+['longSide','shortSide'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const custom = document.getElementById(id+'Custom');
+    custom.style.display = e.target.value==-1 ? 'block':'none';
+    updateThumbs();
+  });
+});
 
-const thumbs=document.getElementById("thumbs");
-const queue=[];
-let thumbList=[];
+// 縮放比例顯示
+document.getElementById('scale').addEventListener('input', e=>{
+  document.getElementById('scaleLabel').textContent = e.target.value + '%';
+  updateThumbs();
+});
+document.getElementById('lock').addEventListener('change', updateThumbs);
 
-// 拖放
+// 拖放/選檔
 const drop=document.getElementById('drop');
-
+drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('dragover');});
 drop.addEventListener('dragleave', e=>{e.preventDefault(); drop.classList.remove('dragover');});
 drop.addEventListener('drop', e=>{e.preventDefault(); drop.classList.remove('dragover'); handleFiles([...e.dataTransfer.files]);});
 document.getElementById('fileFiles').addEventListener('change', e=>handleFiles([...e.target.files]));
@@ -178,103 +184,102 @@ document.getElementById('fileFolder').addEventListener('change', e=>handleFiles(
 
 async function handleFiles(list){
   for(const file of list){
-    queue.push(file);
-    const img = await readAsImage(file);
-    thumbList.push({file,img});
-    addThumb(img,file.name,img.naturalWidth,img.naturalHeight,img.naturalWidth,img.naturalHeight);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      const thumb = {file, url, origW: img.naturalWidth, origH: img.naturalHeight, w: img.naturalWidth, h: img.naturalHeight};
+      queue.push(thumb);
+      addThumb(thumb);
+    };
+    img.src = url;
   }
   log(`加入 ${list.length} 個檔案`);
 }
 
-function addThumb(img, name, origW, origH, newW, newH){
-  const div=document.createElement('div'); div.className='thumb';
-  const image=document.createElement('img'); image.src=img.src; div.appendChild(image);
-  const meta=document.createElement('div'); meta.className='meta';
-  meta.textContent=`${name}\n${origW}×${origH} → ${newW}×${newH}`;
+// 新增縮圖
+function addThumb(thumb){
+  const div = document.createElement('div'); div.className='thumb';
+  const imgEl = new Image(); imgEl.src = thumb.url; div.appendChild(imgEl);
+  const meta = document.createElement('div'); meta.className='meta';
+  meta.textContent = `${thumb.origW}×${thumb.origH} → ${thumb.w}×${thumb.h}`;
   div.appendChild(meta);
+  thumb.div = div; thumb.meta = meta; thumb.imgEl = imgEl;
   thumbs.appendChild(div);
+  thumbList.push(thumb);
 }
 
-async function readAsImage(file){
-  return new Promise((res,rej)=>{
-    const url=URL.createObjectURL(file);
-    const img=new Image();
-    img.onload=()=>{ URL.revokeObjectURL(url); res(img); };
-    img.onerror=rej;
-    img.src=url;
-  });
-}
-
-function calcTargetSize(origW, origH){
-  let w=origW, h=origH;
+// 計算目標尺寸
+function calcTargetSize(origW,origH){
+  let w=origW,h=origH;
   const longSel=Number(document.getElementById('longSide').value);
   const shortSel=Number(document.getElementById('shortSide').value);
   const longCustom=Number(document.getElementById('longSideCustom').value);
   const shortCustom=Number(document.getElementById('shortSideCustom').value);
   const scale=Number(document.getElementById('scale').value)/100;
+  const lock=document.getElementById('lock').checked;
 
-  if((longSel>0||longSel==-1) || (shortSel>0||shortSel==-1)){
-    // 已設定長短邊，縮放比例忽略
-    if(longSel>0) w=longSel; else if(longSel==-1 && longCustom>0) w=longCustom;
-    if(shortSel>0) h=shortSel; else if(shortSel==-1 && shortCustom>0) h=shortCustom;
-  } else {
-    w=Math.round(origW*scale);
-    h=Math.round(origH*scale);
+  let useResize=false;
+  if(longSel>0 || longSel==-1 || shortSel>0 || shortSel==-1){
+    useResize=true;
+    let targetLong = longSel>0 ? longSel : (longSel==-1 && longCustom>0 ? longCustom: origW);
+    let targetShort = shortSel>0 ? shortSel : (shortSel==-1 && shortCustom>0 ? shortCustom: origH);
+
+    if(origW>=origH){ w=targetLong; h=targetShort; if(lock) h=Math.round(origH*(w/origW)); }
+    else{ h=targetLong; w=targetShort; if(lock) w=Math.round(origW*(h/origH)); }
+  } else{
+    w = Math.round(origW*scale); h=Math.round(origH*scale);
   }
   return {w,h};
 }
 
+// 更新所有縮圖尺寸顯示
 function updateThumbs(){
-  thumbs.innerHTML='';
-  thumbList.forEach(({file,img})=>{
-    const {w,h}=calcTargetSize(img.naturalWidth,img.naturalHeight);
-    addThumb(img,file.name,img.naturalWidth,img.naturalHeight,w,h);
+  thumbList.forEach(t=>{
+    const {w,h}=calcTargetSize(t.origW,t.origH);
+    t.w=w; t.h=h;
+    t.meta.textContent = `${t.origW}×${t.origH} → ${t.w}×${t.h}`;
   });
 }
 
+// 處理圖片
+async function processFile(t){
+  try{
+    let f=t.file;
+    if(f.name.toLowerCase().endsWith(".heic")||f.name.toLowerCase().endsWith(".heif")){
+      const blob = await heic2any({blob:f,toType:"image/png"});
+      f = new File([blob],f.name.replace(/\.(heic|heif)$/i,'.png'),{type:"image/png"});
+    }
+    const img = await new Promise(res=>{
+      const i=new Image(); i.onload=()=>res(i); i.src=URL.createObjectURL(f);
+    });
+    const {w,h} = calcTargetSize(img.naturalWidth,img.naturalHeight);
+    const canvas = document.createElement('canvas'); canvas.width=w; canvas.height=h;
+    await picaInstance.resize(img,canvas,{quality:3,alpha:true});
+    const fmt=document.getElementById('format').value;
+    const mime= fmt!='keep'?fmt: f.type||'image/jpeg';
+    const quality= (mime.includes('jpeg')||mime.includes('webp'))? Number(document.getElementById('scale').value)/100:undefined;
+    const outBlob=await picaInstance.toBlob(canvas,mime,quality);
+    return {blob:outBlob,name:`${f.name.replace(/\.[^.]+$/,'')}_${w}x${h}.${mime.split('/')[1]}`};
+  }catch(e){ log(`錯誤：${t.file.name} → ${e}`); return null;}
+}
+
+// 執行處理
 document.getElementById('process').addEventListener('click', async()=>{
-  if(queue.length===0){ log('尚未選擇檔案'); return; }
+  if(queue.length===0){ log('尚未選擇檔案'); return;}
   log(`開始處理 ${queue.length} 個檔案…`);
   const results=[];
-  for(const f of queue){
-    const processed=await processFile(f);
-    if(processed) results.push(processed);
-  }
+  for(const t of queue){ const r=await processFile(t); if(r) results.push(r);}
   if(results.length===1) downloadBlob(results[0].blob,results[0].name);
   else if(results.length>1){
-    const zip=new JSZip();
-    results.forEach(r=>zip.file(r.name,r.blob));
-    const content=await zip.generateAsync({type:'blob'});
-    saveAs(content,'images.zip');
+    const zip=new JSZip(); results.forEach(r=>zip.file(r.name,r.blob));
+    const content=await zip.generateAsync({type:'blob'}); saveAs(content,'images.zip');
     log('全部完成 ✅ (已打包 ZIP)');
   }
 });
 
-async function processFile(file){
-  try{
-    let f=file;
-    if(f.name.toLowerCase().endsWith('.heic')||f.name.toLowerCase().endsWith('.heif')){
-      const blob=await heic2any({blob:f,toType:'image/png'});
-      f=new File([blob],f.name.replace(/\.(heic|heif)$/i,'.png'),{type:'image/png'});
-    }
-    const img=await readAsImage(f);
-    const {w,h}=calcTargetSize(img.naturalWidth,img.naturalHeight);
-    const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
-    await picaInstance.resize(img,canvas,{quality:3,alpha:true});
-    const fmt=document.getElementById('format').value!='keep'?document.getElementById('format').value:f.type;
-    const quality=Number(document.getElementById('quality').value)/100;
-    const outBlob=await picaInstance.toBlob(canvas,fmt,(fmt.includes('jpeg')||fmt.includes('webp'))?quality:undefined);
-    const extMap={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
-    const ext=extMap[fmt]||'jpg';
-    return {blob:outBlob,name:`${f.name.replace(/\.[^.]+$/,'')}_${w}x${h}.${ext}`,w,h};
-  }catch(e){ log(`錯誤：${file.name} → ${e}`); return null;}
-}
+function downloadBlob(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),2000);}
+document.getElementById('clear').addEventListener('click',()=>{queue.length=0; thumbs.innerHTML=''; thumbList.length=0; log('已清空佇列');});
 
-function downloadBlob(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),2000); }
-
-document.getElementById('clear').addEventListener('click', ()=>{
-  queue.length=0; thumbList=[]; thumbs.innerHTML=''; log('已清空佇列');
-});
 </script>
 </body>
-</html>                                                                             
+</html>
